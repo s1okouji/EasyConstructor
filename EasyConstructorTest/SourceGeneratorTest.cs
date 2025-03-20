@@ -16,15 +16,15 @@ public class Tests
 
     private static object[] _generateConstructorTestCase =
     [
-        new object[]{@"..\..\..\TestCase\EmptyArgsConstructorTestCase.txt", @"..\..\..\TestCase\EmptyArgsConstructorTestCase.generated.txt",},
-        new object[]{ @"..\..\..\TestCase\AllArgsConstructorTestCase.txt", @"..\..\..\TestCase\AllArgsConstructorTestCase.generated.txt"}
+        new object[]{Path.Combine("..","..","..","TestCase","EmptyArgsConstructorTestCase.txt"), Path.Combine("..","..","..","TestCase","EmptyArgsConstructorTestCase.generated.txt"),},
+        new object[]{ Path.Combine("..","..","..","TestCase","AllArgsConstructorTestCase.txt"), @"..\..\..\TestCase\AllArgsConstructorTestCase.generated.txt"}
     ];
     
     [Test, TestCaseSource(nameof(_generateConstructorTestCase))]
-    public async Task GenerateConstructorTest(string sourceFile, string generatedSource)
+    public async Task GenerateConstructorTest(string sourceFile, string generatedSourceFile)
     {
         var source = await File.ReadAllTextAsync(sourceFile);
-        var genSource = await File.ReadAllTextAsync(generatedSource);
+        var genSource = await File.ReadAllTextAsync(generatedSourceFile);
         await new CSharpSourceGeneratorTest<SourceGenerator, DefaultVerifier>
         {
             TestState =
