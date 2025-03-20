@@ -1,0 +1,5 @@
+﻿namespace SourceGen {
+    public partial class SampleClass{
+        public SampleClass(){}
+    }
+}
