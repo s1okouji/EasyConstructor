@@ -23,8 +23,11 @@ public class Tests
     [Test, TestCaseSource(nameof(_generateConstructorTestCase))]
     public async Task GenerateConstructorTest(string sourceFile, string generatedSource)
     {
-        var source = await File.ReadAllTextAsync(sourceFile);
-        var genSource = await File.ReadAllTextAsync(generatedSource);
+        var sourceFilePath = Path.Combine(Environment.CurrentDirectory, sourceFile);
+        var generatedFilePath = Path.Combine(Environment.CurrentDirectory, generatedSource);
+        
+        var source = await File.ReadAllTextAsync(sourceFilePath);
+        var genSource = await File.ReadAllTextAsync(generatedFilePath);
         await new CSharpSourceGeneratorTest<SourceGenerator, DefaultVerifier>
         {
             TestState =
