@@ -24,17 +24,13 @@ jobs:
       run: dotnet restore
     - name: Build
       run: |
-        dotnet build -c Release --no-restore
+        mkdir build
+        dotnet build -c Release -o ./build/ --no-restore
         dotnet build -c Debug --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
-    - name: Upload EasyConstructor Dll
+    - name: Upload Dlls
       uses: actions/upload-artifact@v4
       with:
-        name: EasyConstructor.dll
-        path: ./EasyConstructor/bin/Release/netstandard2.0/EasyConstructor.dll
-    - name: Upload EasyConstructor.SourceGen Dll
-      uses: actions/upload-artifact@v4
-      with:
-        name: EasyConstructor.SourceGen.dll
-        path: ./EasyConstructor.SourceGen/bin/Release/netstandard2.0/EasyConstructor.SourceGen.dll
+        name: EasyConstructorDlls
+        path: ./build/
