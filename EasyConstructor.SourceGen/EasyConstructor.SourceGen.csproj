@@ -9,6 +9,10 @@
         <AnalyzerLanguage>cs</AnalyzerLanguage>
         <IncludePackageReferencesDuringMarkupCompilation>true</IncludePackageReferencesDuringMarkupCompilation>
         <RootNamespace>EasyConstructor</RootNamespace>
+        <PackageId>Net.Kuropen.EasyConstructor.SourceGen</PackageId>
+        <Authors>kuropen</Authors>
+        <Version>0.1.0</Version>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <ItemGroup>
