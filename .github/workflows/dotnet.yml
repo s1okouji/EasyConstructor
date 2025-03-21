@@ -29,8 +29,8 @@ jobs:
     - name: Upload EasyConstructor Dll
       uses: actions/upload-artifact@v4
       with:
-        path: EasyConstructor/bin/Release/netstandard2.0/EasyConstructor.dll
+        path: ./EasyConstructor/bin/Release/netstandard2.0/EasyConstructor.dll
     - name: Upload EasyConstructor.SourceGen Dll
       uses: actions/upload-artifact@v4
       with:
-        path: EasyConstructor.SourceGen/bin/Release/netstandard2.0/EasyConstructor.SourceGen.dll
+        path: ./EasyConstructor.SourceGen/bin/Release/netstandard2.0/EasyConstructor.SourceGen.dll
