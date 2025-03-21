@@ -22,10 +22,14 @@ jobs:
         dotnet-version: 9.0.x
     - name: Restore dependencies
       run: dotnet restore
-    - name: Build
+    - name: Build Release
       run: |
+        dotnet build -c Release --no-restore
         mkdir build
-        dotnet build -c Release -o ./build/ --no-restore
+        cp ./EasyConstructor/bin/Release/netstandard2.0/EasyConstructor.dll ./build/
+        cp ./EasyConstructor.SourceGen/bin/Release/netstandard2.0/EasyConstructor.SourceGen.dll ./build/
+    - name: Build Debug
+      run:
         dotnet build -c Debug --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
