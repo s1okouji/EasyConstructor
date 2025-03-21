@@ -22,7 +22,19 @@ jobs:
         dotnet-version: 9.0.x
     - name: Restore dependencies
       run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore
+    - name: Build Release
+      run: |
+        dotnet build -c Release --no-restore
+        mkdir build
+        cp ./EasyConstructor/bin/Release/netstandard2.0/EasyConstructor.dll ./build/
+        cp ./EasyConstructor.SourceGen/bin/Release/netstandard2.0/EasyConstructor.SourceGen.dll ./build/
+    - name: Build Debug
+      run:
+        dotnet build -c Debug --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
+    - name: Upload Dlls
+      uses: actions/upload-artifact@v4
+      with:
+        name: EasyConstructorDlls
+        path: ./build/
