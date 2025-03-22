@@ -29,7 +29,7 @@ jobs:
       run: |
         dotnet build -c Release --no-restore
         mkdir build
-        dotnet pack -o build ../.nuspec
+        dotnet pack -o build -p:NuspecFile=../.nuspec
     - name: Test
       run: dotnet test --no-build --verbosity normal
     - name: Upload Dlls
