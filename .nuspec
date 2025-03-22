@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>Net.Kuropen.EasyConstructor</id>
+        <version>0.1.0</version>
+        <authors>kuropen</authors>
+        <description>
+            This is a package of easy constructor
+        </description>
+        <dependencies>
+            <group targetFramework=".NETStandard2.0">
+                <dependency id="Microsoft.CodeAnalysis.CSharp" version="3.8.0" exclude="Build,Analyzers" />
+            </group>
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="./EasyConstructor/bin/Release/netstandard2.0/EasyConstructor.dll" target="lib/netstandard2.0/"/>
+        <file src="./EasyConstructor.SourceGen/bin/Release/netstandard2.0/EasyConstructor.SourceGen.dll" target="analyzers/dotnet/cs/"/>
+        <file src="./install.ps1" target="tools/install.ps1"/>
+        <file src="./uninstall.ps1" target="tools/uninstall.ps1"/>
+    </files>
+</package>

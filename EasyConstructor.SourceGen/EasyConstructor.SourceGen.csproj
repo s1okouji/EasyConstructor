@@ -5,6 +5,10 @@
         <Nullable>enable</Nullable>
         <TargetFramework>netstandard2.0</TargetFramework>
         <LangVersion>latestmajor</LangVersion>
+        <PackageTags>Analyzer</PackageTags>
+        <IsAnalyzerProject>true</IsAnalyzerProject>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <DevelopmentDependency>true</DevelopmentDependency>
         <IsRoslynComponent>true</IsRoslynComponent>
         <AnalyzerLanguage>cs</AnalyzerLanguage>
         <IncludePackageReferencesDuringMarkupCompilation>true</IncludePackageReferencesDuringMarkupCompilation>
