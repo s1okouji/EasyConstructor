@@ -17,7 +17,8 @@ public class Tests
     private static object[] _generateConstructorTestCase =
     [
         new object[]{Path.Combine("..","..","..","TestCase","EmptyArgsConstructorTestCase.txt"), Path.Combine("..","..","..","TestCase","EmptyArgsConstructorTestCase.generated.txt"),},
-        new object[]{Path.Combine("..","..","..","TestCase","AllArgsConstructorTestCase.txt"), Path.Combine("..","..","..","TestCase","AllArgsConstructorTestCase.generated.txt")}
+        new object[]{Path.Combine("..","..","..","TestCase","AllArgsConstructorTestCase.txt"), Path.Combine("..","..","..","TestCase","AllArgsConstructorTestCase.generated.txt")},
+        new object[]{Path.Combine("..","..","..","TestCase","RequiredArgsConstructorTestCase.txt"), Path.Combine("..","..","..","TestCase","RequiredArgsConstructorTestCase.generated.txt")},
     ];
     
     [Test, TestCaseSource(nameof(_generateConstructorTestCase))]

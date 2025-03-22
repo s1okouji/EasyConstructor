@@ -27,34 +27,15 @@ public class SourceGenerator: ISourceGenerator
                 if (attributeNames.Any(name => name == "EasyConstructor.EmptyConstructorAttribute"))
                 {
                     var classSymbol = semanticModel.GetDeclaredSymbol(classDeclarationSyntax);
-                    var code = $$"""
-                                 namespace {{classSymbol!.ContainingNamespace.Name}} {
-                                     public partial class {{classSymbol.Name}}{
-                                         public {{classSymbol.Name}}(){}
-                                     }
-                                 }
-                                 
-                                 """;
-                    context.AddSource($"{classDeclarationSyntax.Identifier.Text}.Generated.cs", code);
-                }else if (attributeNames.Any(name => name == "EasyConstructor.AllArgsConstructorAttribute"))
+                    context.AddSource($"{classDeclarationSyntax.Identifier.Text}.Generated.cs", CreateSource(classSymbol!, null, []));
+                }
+                
+                if (attributeNames.Any(name => name == "EasyConstructor.AllArgsConstructorAttribute"))
                 {
                     var classSymbol = semanticModel.GetDeclaredSymbol(classDeclarationSyntax);
                     var usings = syntaxTree.GetCompilationUnitRoot().Usings;
                     var variableDeclarations = classDeclarationSyntax.DescendantNodes().OfType<VariableDeclarationSyntax>();
-                    var sb = new StringBuilder();
-                    foreach (var usingDirectiveSyntax in usings)
-                    {
-                        sb.AppendLine(usingDirectiveSyntax.ToString());
-                    }
-
-                    if(usings.Count > 0)
-                        sb.AppendLine();
-
-                    sb.AppendLine($"namespace {classSymbol!.ContainingNamespace.Name} {{");
-                    sb.AppendLine($"  public partial class {classSymbol.Name} {{");
-                    sb.Append($"    public {classSymbol.Name}(");
-                    var strList = new List<string>();
-                    var statementQueue = new Queue<string>();
+                    var variables = new List<(string, string)>();
                     foreach (var declaration in variableDeclarations)
                     {
                         // トークン化されたsyntaxは、末尾にホワイトスペースを持つのでNormalizeWhitespace()を実行する
@@ -62,23 +43,114 @@ public class SourceGenerator: ISourceGenerator
                         foreach (var declarator in declaration.Variables)
                         {
                             var name = declarator.Identifier;
-                            strList.Add($"{type} {name}");
-                            statementQueue.Enqueue($"      this.{name} = {name};");
+                            variables.Add((type, name.ValueText));
                         }
                     }
-                    sb.Append(string.Join(", ", strList));
-                    sb.AppendLine(") {");
-                    while (statementQueue.Count > 0)
+                    context.AddSource($"{classDeclarationSyntax.Identifier.Text}.Generated.cs", CreateSource(classSymbol!, usings, variables));
+                }
+                
+                if (attributeNames.Any(name => name == "EasyConstructor.RequiredArgsConstructorAttribute"))
+                {
+                    var classSymbol = semanticModel.GetDeclaredSymbol(classDeclarationSyntax);
+                    var usings = syntaxTree.GetCompilationUnitRoot().Usings;
+                    var variableDeclarations = classDeclarationSyntax.DescendantNodes().OfType<VariableDeclarationSyntax>();
+                    var variables = new List<(string, string)>();
+                    foreach (var declaration in variableDeclarations)
                     {
-                        var statement = statementQueue.Dequeue();
-                        sb.AppendLine(statement);
+                        // トークン化されたsyntaxは、末尾にホワイトスペースを持つのでNormalizeWhitespace()を実行する
+                        var type = declaration.Type.NormalizeWhitespace().ToFullString();
+                        foreach (var declarator in declaration.Variables)
+                        {
+                            if (declarator.IsInitialized()) continue;
+                            var name = declarator.Identifier;
+                            variables.Add((type, name.ValueText));
+                        }
                     }
-                    sb.AppendLine("    }");
-                    sb.AppendLine("  }");
-                    sb.AppendLine("}");
-                    context.AddSource($"{classDeclarationSyntax.Identifier.Text}.Generated.cs", sb.ToString());
+                    context.AddSource($"{classDeclarationSyntax.Identifier.Text}.Generated.cs", CreateSource(classSymbol!, usings, variables));
                 }
             }
         }
+    }
+
+    private string CreateSource(INamedTypeSymbol classSymbol, SyntaxList<UsingDirectiveSyntax> usings, VariableDeclarationSyntax[] variableDeclarations)
+    {
+        var sb = new StringBuilder();
+        foreach (var usingDirectiveSyntax in usings)
+        {
+            sb.AppendLine(usingDirectiveSyntax.ToString());
+        }
+
+        if(usings.Count > 0)
+            sb.AppendLine();
+
+        sb.AppendLine($"namespace {classSymbol!.ContainingNamespace.Name} {{");
+        sb.AppendLine($"  public partial class {classSymbol.Name} {{");
+        sb.Append($"    public {classSymbol.Name}(");
+        var strList = new List<string>();
+        var statementQueue = new Queue<string>();
+        foreach (var declaration in variableDeclarations)
+        {
+            // トークン化されたsyntaxは、末尾にホワイトスペースを持つのでNormalizeWhitespace()を実行する
+            var type = declaration.Type.NormalizeWhitespace().ToFullString();
+            foreach (var declarator in declaration.Variables)
+            {
+                // if (declarator.IsInitialized()) continue;
+                var name = declarator.Identifier;
+                strList.Add($"{type} {name}");
+                statementQueue.Enqueue($"      this.{name} = {name};");
+            }
+        }
+        sb.Append(string.Join(", ", strList));
+        sb.AppendLine(") {");
+        while (statementQueue.Count > 0)
+        {
+            var statement = statementQueue.Dequeue();
+            sb.AppendLine(statement);
+        }
+        sb.AppendLine("    }");
+        sb.AppendLine("  }");
+        sb.AppendLine("}");
+        return sb.ToString();
+    }
+    
+    private string CreateSource(INamedTypeSymbol classSymbol, SyntaxList<UsingDirectiveSyntax>? usings, List<(string, string)> variables)
+    {
+        var sb = new StringBuilder();
+
+        if (usings != null)
+        {
+            foreach (var usingDirectiveSyntax in usings)
+            {
+                sb.AppendLine(usingDirectiveSyntax.ToString());
+            }
+
+            if (usings.Value.Count > 0)
+                sb.AppendLine();
+        }
+
+        sb.AppendLine($"namespace {classSymbol!.ContainingNamespace.Name} {{");
+        sb.AppendLine($"  public partial class {classSymbol.Name} {{");
+        sb.Append($"    public {classSymbol.Name}(");
+        var strList = new List<string>();
+        var statementQueue = new Queue<string>();
+        foreach (var variable in variables)
+        {
+            // トークン化されたsyntaxは、末尾にホワイトスペースを持つのでNormalizeWhitespace()を実行する
+            var type = variable.Item1;
+            var name = variable.Item2;
+            strList.Add($"{type} {name}");
+            statementQueue.Enqueue($"      this.{name} = {name};");
+        }
+        sb.Append(string.Join(", ", strList));
+        sb.AppendLine(") {");
+        while (statementQueue.Count > 0)
+        {
+            var statement = statementQueue.Dequeue();
+            sb.AppendLine(statement);
+        }
+        sb.AppendLine("    }");
+        sb.AppendLine("  }");
+        sb.AppendLine("}");
+        return sb.ToString();
     }
 }
