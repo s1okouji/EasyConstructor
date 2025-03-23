@@ -20,20 +20,20 @@ public class SourceGenerator: ISourceGenerator
             var semanticModel = compilation.GetSemanticModel(syntaxTree);
             var root = syntaxTree.GetRoot();
             var classNodes = root.DescendantNodes().OfType<ClassDeclarationSyntax>();
-
+            var constructorSources = new List<string>();
             foreach (var classDeclarationSyntax in classNodes)
             {
                 var attributeNames = semanticModel.GetFullAttributeName(classDeclarationSyntax);
                 if (attributeNames.Any(name => name == "EasyConstructor.EmptyConstructorAttribute"))
                 {
                     var classSymbol = semanticModel.GetDeclaredSymbol(classDeclarationSyntax);
-                    context.AddSource($"{classDeclarationSyntax.Identifier.Text}.Generated.cs", CreateSource(classSymbol!, null, []));
+                    constructorSources.Add(CreateConstructorSource(classSymbol!.Name, []));
+                    // context.AddSource($"{classDeclarationSyntax.Identifier.Text}.Generated.cs", CreateConstructorSource(classSymbol!, []));
                 }
                 
                 if (attributeNames.Any(name => name == "EasyConstructor.AllArgsConstructorAttribute"))
                 {
                     var classSymbol = semanticModel.GetDeclaredSymbol(classDeclarationSyntax);
-                    var usings = syntaxTree.GetCompilationUnitRoot().Usings;
                     var variableDeclarations = classDeclarationSyntax.DescendantNodes().OfType<VariableDeclarationSyntax>();
                     var variables = new List<(string, string)>();
                     foreach (var declaration in variableDeclarations)
@@ -46,13 +46,13 @@ public class SourceGenerator: ISourceGenerator
                             variables.Add((type, name.ValueText));
                         }
                     }
-                    context.AddSource($"{classDeclarationSyntax.Identifier.Text}.Generated.cs", CreateSource(classSymbol!, usings, variables));
+                    constructorSources.Add(CreateConstructorSource(classSymbol!.Name, variables));
+                    // context.AddSource($"{classDeclarationSyntax.Identifier.Text}.Generated.cs", CreateConstructorSource(classSymbol!, variables));
                 }
                 
                 if (attributeNames.Any(name => name == "EasyConstructor.RequiredArgsConstructorAttribute"))
                 {
                     var classSymbol = semanticModel.GetDeclaredSymbol(classDeclarationSyntax);
-                    var usings = syntaxTree.GetCompilationUnitRoot().Usings;
                     var variableDeclarations = classDeclarationSyntax.DescendantNodes().OfType<VariableDeclarationSyntax>();
                     var variables = new List<(string, string)>();
                     foreach (var declaration in variableDeclarations)
@@ -66,57 +66,23 @@ public class SourceGenerator: ISourceGenerator
                             variables.Add((type, name.ValueText));
                         }
                     }
-                    context.AddSource($"{classDeclarationSyntax.Identifier.Text}.Generated.cs", CreateSource(classSymbol!, usings, variables));
+
+                    constructorSources.Add(CreateConstructorSource(classSymbol!.Name, variables));
+                }
+
+                if (constructorSources.Count > 0)
+                {
+                    var classSymbol = semanticModel.GetDeclaredSymbol(classDeclarationSyntax);
+                    var usings = syntaxTree.GetCompilationUnitRoot().Usings;
+                    context.AddSource($"{classDeclarationSyntax.Identifier.Text}.Generated.cs", CreateSource(classSymbol!, usings, constructorSources));
                 }
             }
         }
     }
 
-    private string CreateSource(INamedTypeSymbol classSymbol, SyntaxList<UsingDirectiveSyntax> usings, VariableDeclarationSyntax[] variableDeclarations)
+    private string CreateSource(INamedTypeSymbol classSymbol, SyntaxList<UsingDirectiveSyntax>? usings, IEnumerable<string> constructorSources)
     {
         var sb = new StringBuilder();
-        foreach (var usingDirectiveSyntax in usings)
-        {
-            sb.AppendLine(usingDirectiveSyntax.ToString());
-        }
-
-        if(usings.Count > 0)
-            sb.AppendLine();
-
-        sb.AppendLine($"namespace {classSymbol!.ContainingNamespace.Name} {{");
-        sb.AppendLine($"  public partial class {classSymbol.Name} {{");
-        sb.Append($"    public {classSymbol.Name}(");
-        var strList = new List<string>();
-        var statementQueue = new Queue<string>();
-        foreach (var declaration in variableDeclarations)
-        {
-            // トークン化されたsyntaxは、末尾にホワイトスペースを持つのでNormalizeWhitespace()を実行する
-            var type = declaration.Type.NormalizeWhitespace().ToFullString();
-            foreach (var declarator in declaration.Variables)
-            {
-                // if (declarator.IsInitialized()) continue;
-                var name = declarator.Identifier;
-                strList.Add($"{type} {name}");
-                statementQueue.Enqueue($"      this.{name} = {name};");
-            }
-        }
-        sb.Append(string.Join(", ", strList));
-        sb.AppendLine(") {");
-        while (statementQueue.Count > 0)
-        {
-            var statement = statementQueue.Dequeue();
-            sb.AppendLine(statement);
-        }
-        sb.AppendLine("    }");
-        sb.AppendLine("  }");
-        sb.AppendLine("}");
-        return sb.ToString();
-    }
-    
-    private string CreateSource(INamedTypeSymbol classSymbol, SyntaxList<UsingDirectiveSyntax>? usings, List<(string, string)> variables)
-    {
-        var sb = new StringBuilder();
-
         if (usings != null)
         {
             foreach (var usingDirectiveSyntax in usings)
@@ -127,10 +93,23 @@ public class SourceGenerator: ISourceGenerator
             if (usings.Value.Count > 0)
                 sb.AppendLine();
         }
-
+        
         sb.AppendLine($"namespace {classSymbol!.ContainingNamespace.Name} {{");
         sb.AppendLine($"  public partial class {classSymbol.Name} {{");
-        sb.Append($"    public {classSymbol.Name}(");
+        foreach (var constructorSource in constructorSources)
+        {
+            sb.Append(constructorSource);
+        }
+        
+        sb.AppendLine("  }");
+        sb.AppendLine("}");
+        return sb.ToString();
+    }
+    
+    private string CreateConstructorSource(string className, List<(string, string)> variables)
+    {
+        var sb = new StringBuilder();
+        sb.Append($"    public {className}(");
         var strList = new List<string>();
         var statementQueue = new Queue<string>();
         foreach (var variable in variables)
@@ -149,8 +128,6 @@ public class SourceGenerator: ISourceGenerator
             sb.AppendLine(statement);
         }
         sb.AppendLine("    }");
-        sb.AppendLine("  }");
-        sb.AppendLine("}");
         return sb.ToString();
     }
 }

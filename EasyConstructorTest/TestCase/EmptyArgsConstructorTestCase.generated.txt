@@ -1,4 +1,7 @@
-﻿namespace SourceGen {
+﻿using System;
+using EasyConstructor;
+
+namespace SourceGen {
   public partial class SampleClass {
     public SampleClass() {
     }
