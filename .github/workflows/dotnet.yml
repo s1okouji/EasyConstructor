@@ -27,7 +27,8 @@ jobs:
         dotnet build -c Debug --no-restore
     - name: Pack
       run:
-        dotnet pack -o build -p:NuspecFile=../.nuspec
+        dotnet build -c Release --no-restore ./EasyConstructor/EasyConstructor.csproj ./EasyConstructor.SourceGen/EasyConstructor.SourceGen.csproj
+        dotnet pack -o build --no-build -p:NuspecFile=../.nuspec
     - name: Test
       run: dotnet test --no-build --verbosity normal
     - name: Upload Dlls
