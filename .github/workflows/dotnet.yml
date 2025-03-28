@@ -25,11 +25,10 @@ jobs:
     - name: Build Debug
       run:
         dotnet build -c Debug --no-restore
-    - name: Build Release & Pack
+    - name: Pack
       run: |
-        dotnet build -c Release --no-restore
-        mkdir build
-        dotnet pack -o build -p:NuspecFile=../.nuspec
+        dotnet build -c Release
+        dotnet pack -o build --no-build -p:NuspecFile=../.nuspec
     - name: Test
       run: dotnet test --no-build --verbosity normal
     - name: Upload Dlls
