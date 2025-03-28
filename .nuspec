@@ -5,7 +5,7 @@
         <version>0.1.0</version>
         <authors>kuropen</authors>
         <description>
-            This is a package of easy constructor
+            EasyConstructor is a simple constructor generator.
         </description>
         <dependencies>
             <group targetFramework=".NETStandard2.0">
