@@ -8,7 +8,6 @@
         <PackageId>Net.Kuropen.EasyConstructor</PackageId>
         <Authors>kuropen</Authors>
         <Version>0.1.0</Version>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
 </Project>
