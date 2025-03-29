@@ -5,7 +5,6 @@ name: .NET
 
 on:
   push: # ブランチに関わらずpushされた際に実行する
-#    branches: [ "master" ]
   pull_request:
     branches: [ "master" ]
 
@@ -20,6 +19,15 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 9.0.x
+    - name: Cache NuGet Packages
+      uses: actions/cache@v4
+      with:
+        path: |
+          ./EasyConstructor/obj
+          ./EasyConstructor.SourceGen/obj
+          ./EasyConstructor.Test/obj
+        key: ${{ hashFiles('**/*.csproj') }}
+      continue-on-error: true
     - name: Restore dependencies
       run: dotnet restore
     - name: Build Debug
