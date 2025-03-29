@@ -5,9 +5,15 @@
         <version>0.1.1</version>
         <authors>kuropen</authors>
         <readme>README.md</readme>
+        <copyright>Copyright (c) kuropen 2025</copyright>
+        <developmentDependency>true</developmentDependency>
+        <license type="expression">MIT</license>
+        <tags>CSharp Roslyn Compiler</tags>
         <description>
             EasyConstructor is a simple constructor generator.
         </description>
+        <projectUrl>https://github.com/s1okouji/EasyConstructor</projectUrl>
+        <repository type="git" url="https://github.com/s1okouji/EasyConstructor"/>
         <dependencies>
             <group targetFramework=".NETStandard2.0">
                 <dependency id="Microsoft.CodeAnalysis.CSharp" version="3.8.0" exclude="Build,Analyzers" />
