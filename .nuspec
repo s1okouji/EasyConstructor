@@ -18,5 +18,6 @@
         <file src="./EasyConstructor.SourceGen/bin/Release/netstandard2.0/EasyConstructor.SourceGen.dll" target="analyzers/dotnet/cs/"/>
         <file src="./install.ps1" target="tools/install.ps1"/>
         <file src="./uninstall.ps1" target="tools/uninstall.ps1"/>
+        <file src="./ReadmeForNuGet.md" target="README.md"/>
     </files>
 </package>
