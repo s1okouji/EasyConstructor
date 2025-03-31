@@ -41,4 +41,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: NuGetPackage
-        path: ./build/Net.Kuropen.EasyConstructor.*.nupkg
+        path: ./build/EasyConstructor.*.nupkg
