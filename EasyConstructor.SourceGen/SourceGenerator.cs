@@ -20,15 +20,14 @@ public class SourceGenerator: ISourceGenerator
             var semanticModel = compilation.GetSemanticModel(syntaxTree);
             var root = syntaxTree.GetRoot();
             var classNodes = root.DescendantNodes().OfType<ClassDeclarationSyntax>();
-            var constructorSources = new List<string>();
             foreach (var classDeclarationSyntax in classNodes)
             {
+                var constructorSources = new List<string>();
                 var attributeNames = semanticModel.GetFullAttributeName(classDeclarationSyntax);
                 if (attributeNames.Any(name => name == "EasyConstructor.EmptyConstructorAttribute"))
                 {
                     var classSymbol = semanticModel.GetDeclaredSymbol(classDeclarationSyntax);
                     constructorSources.Add(CreateConstructorSource(classSymbol!.Name, []));
-                    // context.AddSource($"{classDeclarationSyntax.Identifier.Text}.Generated.cs", CreateConstructorSource(classSymbol!, []));
                 }
                 
                 if (attributeNames.Any(name => name == "EasyConstructor.AllArgsConstructorAttribute"))
@@ -47,7 +46,6 @@ public class SourceGenerator: ISourceGenerator
                         }
                     }
                     constructorSources.Add(CreateConstructorSource(classSymbol!.Name, variables));
-                    // context.AddSource($"{classDeclarationSyntax.Identifier.Text}.Generated.cs", CreateConstructorSource(classSymbol!, variables));
                 }
                 
                 if (attributeNames.Any(name => name == "EasyConstructor.RequiredArgsConstructorAttribute"))
