@@ -9,11 +9,11 @@ EasyConstructorは自動でコンストラクタを自動生成するソース�
 
 ## Install
 
-NuGetパッケージとして配布されています。
+[NuGetパッケージ](https://www.nuget.org/packages/EasyConstructor/)として配布されています。
 コマンドを使用してインストールする場合は、以下のコマンドを使用してください。
 
 ```
-dotnet add package Net.Kuropen.EasyConstructor --version 0.1.1
+dotnet add package EasyConstructor --version 0.1.2
 ```
 
 ## How To Use
