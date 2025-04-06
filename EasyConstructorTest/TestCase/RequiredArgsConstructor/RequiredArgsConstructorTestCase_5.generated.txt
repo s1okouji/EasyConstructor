@@ -1,0 +1,11 @@
+﻿using System;
+using EasyConstructor;
+
+namespace SourceGen {
+  public partial class SampleClass {
+    internal SampleClass(int x, int y) {
+      this.x = x;
+      this.y = y;
+    }
+  }
+}
