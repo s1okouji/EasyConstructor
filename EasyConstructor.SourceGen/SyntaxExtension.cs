@@ -4,24 +4,6 @@ namespace EasyConstructor;
 
 public static class SyntaxExtension
 {
-    public static string[] GetFieldIdentifiers(this ClassDeclarationSyntax syntax)
-    {
-        var variables = syntax.DescendantNodes().OfType<VariableDeclaratorSyntax>();
-        return variables.Select(v => v.Identifier.ValueText).ToArray();
-    }
-    
-    public static VariableDeclaratorSyntax[] GetFieldDeclarations(this ClassDeclarationSyntax syntax)
-    {
-        var variables = syntax.DescendantNodes().OfType<VariableDeclaratorSyntax>();
-        return variables.ToArray();
-    }
-    
-    public static string[] GetFieldIdentifiers(this FieldDeclarationSyntax syntax)
-    => syntax.Declaration.Variables.Select(variable => variable.Identifier.Text).ToArray();
-    
-    public static string GetPropertyIdentifiers(this PropertyDeclarationSyntax syntax)
-        => syntax.Identifier.ValueText;
-
     /// <summary>
     /// 初期化されていないフィールド変数を取得する
     /// </summary>
@@ -52,16 +34,6 @@ public static class SyntaxExtension
     /// <param name="syntax"></param>
     /// <returns></returns>
     public static bool IsInitialized(this VariableDeclaratorSyntax syntax)
-    {
-        return syntax.Initializer is not null;
-    }
-    
-    /// <summary>
-    /// 変数が初期化されているかどうか
-    /// </summary>
-    /// <param name="syntax"></param>
-    /// <returns></returns>
-    public static bool IsInitialized(this PropertyDeclarationSyntax syntax)
     {
         return syntax.Initializer is not null;
     }
