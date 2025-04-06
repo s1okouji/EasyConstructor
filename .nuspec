@@ -6,7 +6,7 @@
         <authors>kuropen</authors>
         <readme>README.md</readme>
         <copyright>Copyright (c) kuropen 2025</copyright>
-        <developmentDependency>true</developmentDependency>
+        <developmentDependency>false</developmentDependency>
         <license type="expression">MIT</license>
         <tags>CSharp Roslyn Compiler</tags>
         <description>
@@ -23,8 +23,6 @@
     <files>
         <file src="./EasyConstructor/bin/Release/netstandard2.0/EasyConstructor.dll" target="lib/netstandard2.0/"/>
         <file src="./EasyConstructor.SourceGen/bin/Release/netstandard2.0/EasyConstructor.SourceGen.dll" target="analyzers/dotnet/cs/"/>
-        <file src="./install.ps1" target="tools/install.ps1"/>
-        <file src="./uninstall.ps1" target="tools/uninstall.ps1"/>
         <file src="./ReadmeForNuGet.md" target="README.md"/>
     </files>
 </package>
