@@ -9,21 +9,40 @@ namespace EsyConstructorTest;
 
 public class Tests
 {
-    [SetUp]
-    public void Setup()
+    private static IEnumerable<object[]> GetTestCase()
     {
+        var emptyConstructorTestCase = GetTestCaseList("EmptyArgsConstructor");
+        var allArgsConstructorTestCase = GetTestCaseList("AllArgsConstructor");
+        var requiredArgsConstructorTestCase = GetTestCaseList("RequiredArgsConstructor");
+        var someConstructorTestCase = GetTestCaseList("SomeConstructor");
+        return emptyConstructorTestCase.Concat(allArgsConstructorTestCase).Concat(requiredArgsConstructorTestCase).Concat(someConstructorTestCase);
     }
 
-    private static object[] _generateConstructorTestCase =
-    [
-        new object[]{Path.Combine("..","..","..","TestCase","EmptyArgsConstructorTestCase.txt"), Path.Combine("..","..","..","TestCase","EmptyArgsConstructorTestCase.generated.txt"),},
-        new object[]{Path.Combine("..","..","..","TestCase","AllArgsConstructorTestCase.txt"), Path.Combine("..","..","..","TestCase","AllArgsConstructorTestCase.generated.txt")},
-        new object[]{Path.Combine("..","..","..","TestCase","RequiredArgsConstructorTestCase.txt"), Path.Combine("..","..","..","TestCase","RequiredArgsConstructorTestCase.generated.txt")},
-        new object[]{Path.Combine("..","..","..","TestCase","SomeConstructorTestCase.txt"), Path.Combine("..","..","..","TestCase","SomeConstructorTestCase.generated.txt")},
-        new object[]{Path.Combine("..","..","..","TestCase","SomeConstructorTestCase_1.txt"), Path.Combine("..","..","..","TestCase","SomeConstructorTestCase_1.generated.txt")},
-    ];
+    private static List<object[]> GetTestCaseList(string typeName)
+    {
+        var folderPath = Path.Combine("..", "..", "..", "TestCase", typeName);
+        var i = 0;
+        var list = new List<object[]>();
+        while (true)
+        {
+            var sourceFileName = $"{typeName}TestCase_{i}.txt";
+            var generatedFileName = $"{typeName}TestCase_{i}.generated.txt";
+            var sourceFilePath = Path.Combine(folderPath, sourceFileName);
+            var generatedFilePath = Path.Combine(folderPath, generatedFileName);
+            if (File.Exists(sourceFilePath) && File.Exists(generatedFilePath))
+            {
+                list.Add([sourceFilePath, generatedFilePath]);
+            }
+            else
+            {
+                break;
+            }
+            i++;
+        }
+        return list;
+    }
     
-    [Test, TestCaseSource(nameof(_generateConstructorTestCase))]
+    [Test, TestCaseSource(nameof(GetTestCase))]
     public async Task GenerateConstructorTest(string sourceFile, string generatedSourceFile)
     {
         var source = await File.ReadAllTextAsync(sourceFile);

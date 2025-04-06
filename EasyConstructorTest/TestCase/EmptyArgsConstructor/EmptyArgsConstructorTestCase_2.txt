@@ -1,0 +1,15 @@
+﻿using System;
+using EasyConstructor;
+
+namespace SourceGen {
+    [EmptyConstructor(ConstructorAccessibility.Private)]
+    public partial class SampleClass {
+
+        public SampleClass(int x) {
+            this.x = x;
+        }
+
+        public string Sample = "Hoge";
+        public int x,y;
+    }
+}

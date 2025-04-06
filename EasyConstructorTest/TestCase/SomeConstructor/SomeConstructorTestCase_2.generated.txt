@@ -1,0 +1,18 @@
+using System;
+using EasyConstructor;
+
+namespace SourceGen {
+  public partial class SampleClass {
+    protected internal SampleClass(String Sample, int x, int y) {
+      this.Sample = Sample;
+      this.x = x;
+      this.y = y;
+    }
+    protected SampleClass(int x, int y) {
+      this.x = x;
+      this.y = y;
+    }
+    internal SampleClass() {
+    }
+  }
+}

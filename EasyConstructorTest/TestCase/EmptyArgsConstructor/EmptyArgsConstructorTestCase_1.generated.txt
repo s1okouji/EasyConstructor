@@ -1,0 +1,9 @@
+﻿using System;
+using EasyConstructor;
+
+namespace SourceGen {
+  internal partial class SampleClass {
+    public SampleClass() {
+    }
+  }
+}

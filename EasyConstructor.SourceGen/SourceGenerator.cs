@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System.Collections.Immutable;
+using System.Reflection;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -22,63 +24,108 @@ public class SourceGenerator: ISourceGenerator
             var classNodes = root.DescendantNodes().OfType<ClassDeclarationSyntax>();
             foreach (var classDeclarationSyntax in classNodes)
             {
-                var constructorSources = new List<string>();
-                var attributeNames = semanticModel.GetFullAttributeName(classDeclarationSyntax);
-                if (attributeNames.Any(name => name == "EasyConstructor.EmptyConstructorAttribute"))
+                var classSymbol = semanticModel.GetDeclaredSymbol(classDeclarationSyntax);
+                if (classSymbol == null) continue;
+                var classGenerator = new ClassGenerator(classSymbol!.ContainingNamespace.Name, classSymbol!.DeclaredAccessibility, classSymbol.Name);
+                var attributes = classSymbol.GetAttributes();
+                try
                 {
-                    var classSymbol = semanticModel.GetDeclaredSymbol(classDeclarationSyntax);
-                    constructorSources.Add(CreateConstructorSource(classSymbol!.Name, []));
-                }
-                
-                if (attributeNames.Any(name => name == "EasyConstructor.AllArgsConstructorAttribute"))
-                {
-                    var classSymbol = semanticModel.GetDeclaredSymbol(classDeclarationSyntax);
-                    var variableDeclarations = classDeclarationSyntax.DescendantNodes().OfType<VariableDeclarationSyntax>();
-                    var variables = new List<(string, string)>();
-                    foreach (var declaration in variableDeclarations)
+                    var accessibilities = GetEasyConstructorAttributes(attributes);
+                    foreach (var (name, constructorAccessibility) in accessibilities)
                     {
-                        // トークン化されたsyntaxは、末尾にホワイトスペースを持つのでNormalizeWhitespace()を実行する
-                        var type = declaration.Type.NormalizeWhitespace().ToFullString();
-                        foreach (var declarator in declaration.Variables)
+                        if (name == "EasyConstructor.EmptyConstructorAttribute")
                         {
-                            var name = declarator.Identifier;
-                            variables.Add((type, name.ValueText));
+                            classGenerator.Constructors.Add(new ConstructorGenerator(constructorAccessibility,
+                                classSymbol!.Name));
                         }
-                    }
-                    constructorSources.Add(CreateConstructorSource(classSymbol!.Name, variables));
-                }
-                
-                if (attributeNames.Any(name => name == "EasyConstructor.RequiredArgsConstructorAttribute"))
-                {
-                    var classSymbol = semanticModel.GetDeclaredSymbol(classDeclarationSyntax);
-                    var variableDeclarations = classDeclarationSyntax.DescendantNodes().OfType<VariableDeclarationSyntax>();
-                    var variables = new List<(string, string)>();
-                    foreach (var declaration in variableDeclarations)
-                    {
-                        // トークン化されたsyntaxは、末尾にホワイトスペースを持つのでNormalizeWhitespace()を実行する
-                        var type = declaration.Type.NormalizeWhitespace().ToFullString();
-                        foreach (var declarator in declaration.Variables)
+
+                        if (name == "EasyConstructor.AllArgsConstructorAttribute")
                         {
-                            if (declarator.IsInitialized()) continue;
-                            var name = declarator.Identifier;
-                            variables.Add((type, name.ValueText));
+                            classGenerator.Constructors.Add(
+                                new ConstructorGenerator(constructorAccessibility, classSymbol!.Name)
+                                {
+                                    Parameters = GetParameters(classDeclarationSyntax)
+                                });
+                        }
+
+                        if (name == "EasyConstructor.RequiredArgsConstructorAttribute")
+                        {
+                            classGenerator.Constructors.Add(
+                                new ConstructorGenerator(constructorAccessibility, classSymbol!.Name)
+                                {
+                                    Parameters = GetParameters(classDeclarationSyntax, true)
+                                });
                         }
                     }
 
-                    constructorSources.Add(CreateConstructorSource(classSymbol!.Name, variables));
+
+                }
+                catch (Exception e)
+                {
+                    // ignored
+                }
+                finally
+                {
+                    if (classGenerator.Constructors.Count > 0)
+                    {
+                        var usings = syntaxTree.GetCompilationUnitRoot().Usings;
+                        context.AddSource($"{classDeclarationSyntax.Identifier.Text}.Generated.cs",
+                            CreateSource(usings, classGenerator));
+                    }
                 }
 
-                if (constructorSources.Count > 0)
-                {
-                    var classSymbol = semanticModel.GetDeclaredSymbol(classDeclarationSyntax);
-                    var usings = syntaxTree.GetCompilationUnitRoot().Usings;
-                    context.AddSource($"{classDeclarationSyntax.Identifier.Text}.Generated.cs", CreateSource(classSymbol!, usings, constructorSources));
-                }
             }
         }
     }
 
-    private string CreateSource(INamedTypeSymbol classSymbol, SyntaxList<UsingDirectiveSyntax>? usings, IEnumerable<string> constructorSources)
+    private static List<(string, ConstructorAccessibility)> GetEasyConstructorAttributes(ImmutableArray<AttributeData> attributes)
+    {
+        var list = new List<(string, ConstructorAccessibility)>();
+
+        if (attributes.IsDefaultOrEmpty) return list;
+        foreach (var attributeData in attributes)
+        {
+            var attributeClass = attributeData.AttributeClass;
+            if (attributeClass?.ContainingNamespace.Name != "EasyConstructor") continue;
+            var name = attributeClass.Name;
+            if (name is not ("EmptyConstructorAttribute"
+                or "AllArgsConstructorAttribute"
+                or "RequiredArgsConstructorAttribute")) continue;
+
+            var arguments = attributeData.GetAttributeConstructorArgument();
+            if(arguments.Count == 0) list.Add(($"{attributeClass.ContainingNamespace.Name}.{name}", ConstructorAccessibility.Public));
+            foreach (var typedConstant in arguments.Where(typedConstant => typedConstant.Type!.Name == "ConstructorAccessibility"))
+            {
+                if (typedConstant.Value is int value)
+                {
+                    list.Add(($"{attributeClass.ContainingNamespace.Name}.{name}", (ConstructorAccessibility)value));
+                }
+            }
+        }
+
+        return list;
+    }
+    
+    private static List<(string, string)> GetParameters(SyntaxNode syntaxNode, bool requiredArgs=false)
+    {
+        var variableDeclarations = syntaxNode.DescendantNodes().OfType<VariableDeclarationSyntax>();
+        var variables = new List<(string, string)>();
+        foreach (var declaration in variableDeclarations)
+        {
+            // トークン化されたsyntaxは、末尾にホワイトスペースを持つのでNormalizeWhitespace()を実行する
+            var type = declaration.Type.NormalizeWhitespace().ToFullString();
+            foreach (var declarator in declaration.Variables)
+            {
+                if (requiredArgs && declarator.IsInitialized()) continue;
+                var name = declarator.Identifier;
+                variables.Add((type, name.ValueText));
+            }
+        }
+
+        return variables;
+    }
+
+    private static string CreateSource(SyntaxList<UsingDirectiveSyntax>? usings, ClassGenerator classGenerator)
     {
         var sb = new StringBuilder();
         if (usings != null)
@@ -91,41 +138,8 @@ public class SourceGenerator: ISourceGenerator
             if (usings.Value.Count > 0)
                 sb.AppendLine();
         }
-        
-        sb.AppendLine($"namespace {classSymbol!.ContainingNamespace.Name} {{");
-        sb.AppendLine($"  public partial class {classSymbol.Name} {{");
-        foreach (var constructorSource in constructorSources)
-        {
-            sb.Append(constructorSource);
-        }
-        
-        sb.AppendLine("  }");
-        sb.AppendLine("}");
-        return sb.ToString();
-    }
-    
-    private string CreateConstructorSource(string className, List<(string, string)> variables)
-    {
-        var sb = new StringBuilder();
-        sb.Append($"    public {className}(");
-        var strList = new List<string>();
-        var statementQueue = new Queue<string>();
-        foreach (var variable in variables)
-        {
-            // トークン化されたsyntaxは、末尾にホワイトスペースを持つのでNormalizeWhitespace()を実行する
-            var type = variable.Item1;
-            var name = variable.Item2;
-            strList.Add($"{type} {name}");
-            statementQueue.Enqueue($"      this.{name} = {name};");
-        }
-        sb.Append(string.Join(", ", strList));
-        sb.AppendLine(") {");
-        while (statementQueue.Count > 0)
-        {
-            var statement = statementQueue.Dequeue();
-            sb.AppendLine(statement);
-        }
-        sb.AppendLine("    }");
+
+        sb.Append(classGenerator.Generate());
         return sb.ToString();
     }
 }
