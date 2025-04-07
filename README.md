@@ -13,7 +13,7 @@ EasyConstructorは自動でコンストラクタを自動生成するソース�
 コマンドを使用してインストールする場合は、以下のコマンドを使用してください。
 
 ```
-dotnet add package EasyConstructor --version 0.1.2
+dotnet add package EasyConstructor --version 0.2.0
 ```
 
 ## How To Use
@@ -64,17 +64,41 @@ public partial class EmptyClass {
 
 自動生成されるコンストラクタの対象となるのはフィールドのみです。**プロパティは対象にならないことに注意してください。**
 
+また各Attributeの引数に`ConstructorAccessibility`型の値を渡すと、コンストラクタのアクセス修飾子を設定できます。
+
+例えば以下のような場合、Str1を代入するProtectedキーワードが付いたコンストラクタが生成されます。
+
+```c#
+namespace SampleNameSpace;
+// You have to add the partial keyword. 
+[RequiredArgsConstructor(ConstructorAccessibility.Protected)]
+public partial class RequiredClass {
+    public string Str0 = "";
+    public string Str1;
+}
+```
+
 ### Attributes
 
 | `[EmptyConstructor]` | `[AllArgsConstructor]`          | `[RequiredArgsConstructor]`           |
 |----------------------|---------------------------------|---------------------------------------|
 | 引数を持たないコンストラクタを作成します | クラス内の全てのフィールドに代入するコンストラクタを作成します | クラス内の初期化されていないフィールドに代入するコンストラクタを作成します |
 
+### ConstructorAccessibility
+
+コンストラクタのアクセス修飾子は以下の6つから利用できます。
+
+- `Public`
+- `ProtectedInternal`
+- `Protected`
+- `Internal`
+- `PrivateProtected`
+- `Private`
+
 ## Roadmap
 
 ### 対応予定
 
-- コンストラクタのアクセス修飾子を選択機能
 - UPM化
 
 ### 検討中
