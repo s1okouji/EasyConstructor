@@ -6,7 +6,7 @@
 2. set attributes
 
 ```c#
-[EmptyConstructor]
+[EmptyConstructor(ConstructorAccessibility.Internal)]
 [AllArgsConstructor]
 [RequiredArgsConstructor]
 public partial class Sample{
