@@ -60,7 +60,7 @@ public class SourceGenerator: ISourceGenerator
 
 
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     // ignored
                 }
