@@ -5,9 +5,9 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>latestmajor</LangVersion>
-        <PackageId>Net.Kuropen.EasyConstructor</PackageId>
+        <PackageId>EasyConstructor</PackageId>
         <Authors>kuropen</Authors>
-        <Version>0.1.3</Version>
+        <Version>0.2.0</Version>
     </PropertyGroup>
 
 </Project>
